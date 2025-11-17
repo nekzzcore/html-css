@@ -1,0 +1,232 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+
+/* Селектор по тегу */
+header {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Дочерний селектор */
+nav > ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    margin-top: 1rem;
+}
+
+/* Селектор потомков */
+nav ul li {
+    margin: 0 1.5rem;
+}
+
+/* Группировка селекторов */
+h1, h2, h3 {
+    font-family: 'Georgia', serif;
+    margin-bottom: 1rem;
+}
+
+/* ===== ПСЕВДОКЛАССЫ ===== */
+
+/* :hover */
+nav a:hover {
+    color: #ffd700;
+    transform: translateY(-2px);
+}
+
+/* :active */
+nav a:active {
+    transform: scale(0.95);
+}
+
+/* :first-child и :last-child */
+nav li:first-child a {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+nav li:last-child {
+    margin-right: 0;
+}
+
+/* :nth-child() */
+main section:nth-child(even) {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== ПСЕВДОЭЛЕМЕНТЫ ===== */
+
+/* ::before */
+h2::before {
+    content: "▸ ";
+    color: #3498db;
+}
+
+/* ::after */
+nav a::after {
+    content: "";
+    display: block;
+    width: 0;
+    height: 2px;
+    background: #ffd700;
+    transition: width 0.3s;
+    margin-top: 5px;
+}
+
+nav a:hover::after {
+    width: 100%;
+}
+
+/* ::first-letter */
+p::first-letter {
+    font-size: 1.5em;
+    color: #3498db;
+    font-weight: bold;
+    float: left;
+    line-height: 1;
+    margin-right: 5px;
+}
+
+/* ::selection */
+::selection {
+    background: #3498db;
+    color: white;
+}
+
+/* ===== ОСНОВНЫЕ СТИЛИ ===== */
+main {
+    margin-top: 120px;
+    padding: 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+section {
+    background: white;
+    margin: 2rem 0;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+section:hover {
+    transform: translateY(-5px);
+}
+
+#about {
+    border-left: 5px solid #3498db;
+}
+
+#projects {
+    border-left: 5px solid #e74c3c;
+}
+
+#contact {
+    border-left: 5px solid #27ae60;
+}
+
+article {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+article:hover {
+    background: #e9ecef;
+    transform: scale(1.02);
+}
+
+article h3 {
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+}
+
+article h3::before {
+    content: "🚀 ";
+    margin-right: 10px;
+}
+
+a {
+    color: #3498db;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+aside {
+    background: #34495e;
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    margin-top: 2rem;
+    border-radius: 10px;
+}
+
+aside h3 {
+    color: #ffd700;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+    nav > ul {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    nav ul li {
+        margin: 0;
+    }
+    
+    main {
+        margin-top: 180px;
+        padding: 1rem;
+    }
+}
+
+/* ===== АНИМАЦИИ ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+section {
+    animation: fadeIn 0.6s ease-out;
+}
+
+#projects {
+    animation-delay: 0.2s;
+}
+
+#contact {
+    animation-delay: 0.4s;
+}

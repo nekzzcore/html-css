@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Канбан-доска</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            color: #333;
+        }
+
+        .add-task {
+            margin: 20px auto;
+            text-align: center;
+            max-width: 600px;
+        }
+
+        .task-input {
+            padding: 10px;
+            width: 300px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .add-btn {
+            padding: 10px 20px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .add-btn:hover {
+            background: #45a049;
+        }
+
+        .board {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px;
+        }
+
+        .column {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            min-width: 250px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .column-header {
+            font-weight: bold;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid;
+            text-align: center;
+        }
+
+        #queue .column-header { border-color: #ff6b6b; color: #ff6b6b; }
+        #progress .column-header { border-color: #4d96ff; color: #4d96ff; }
+        #review .column-header { border-color: #ffcc00; color: #ffcc00; }
+
+        .task {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-left: 4px solid #4CAF50;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: move;
+            user-select: none;
+        }
+
+        .task:hover {
+            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+            transition: all 0.2s;
+        }
+
+        .task-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .task-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .task-btn {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 3px 8px;
+            cursor: pointer;
+        }
+
+        .task-btn:hover {
+            background: #f5f5f5;
+        }
+
+        .delete-btn {
+            color: #ff4444;
+        }
+
+        .column-footer {
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ddd;
+        }
+
+        .empty-column {
+            color: #aaa;
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .dragging {
+            opacity: 0.5;
+            background: #f0f0f0;
+        }
+
+        .drag-over {
+            background: #f8fff8;
+            border: 2px dashed #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📋 Канбан-доска</h1>
+        <p>Перетаскивайте задачи между колонками</p>
+    </div>
+
+    <div class="add-task">
+        <input type="text" id="taskInput" class="task-input" placeholder="Введите задачу">
+        <button onclick="addTask()" class="add-btn">Добавить задачу</button>
+    </div>
+
+    <div class="board" id="board">
+        <div class="column" id="queue" data-column="queue">
+            <div class="column-header">Очередь</div>
+            <div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="task" draggable="true" ondragstart="drag(event)" data-task="1">
+                    <div class="task-title">Начать проект</div>
+                    <div class="task-controls">
+                        <button onclick="deleteTask(this)" class="task-btn delete-btn">Удалить</button>
+                    </div>
+                </div>
+            </div>
+            <div class="column-footer">Перетащите задачи сюда</div>
+        </div>
+
+        <div class="column" id="progress" data-column="progress">
+            <div class="column-header">В работе</div>
+            <div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="task" draggable="true" ondragstart="drag(event)" data-task="2">
+                    <div class="task-title">Сделать дизайн</div>
+                    <div class="task-controls">
+                        <button onclick="deleteTask(this)" class="task-btn delete-btn">Удалить</button>
+                    </div>
+                </div>
+            </div>
+            <div class="column-footer">Перетащите задачи сюда</div>
+        </div>
+
+        <div class="column" id="review" data-column="review">
+            <div class="column-header">На проверке</div>
+            <div class="tasks" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="empty-column">Нет задач</div>
+            </div>
+            <div class="column-footer">Перетащите задачи сюда</div>
+        </div>
+    </div>
+
+    <script>
+        // Данные задач
+        let tasks = {
+            queue: [
+                { id: 1, title: "Начать проект" }
+            ],
+            progress: [
+                { id: 2, title: "Сделать дизайн" }
+            ],
+            review: []
+        };
+
+        let draggedTask = null;
+        let draggedColumn = null;
+
+        // Drag & Drop функции
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        function drag(ev) {
+            const taskElement = ev.target.closest('.task');
+            draggedTask = taskElement.getAttribute('data-task');
+            draggedColumn = taskElement.closest('.column').getAttribute('data-column');
+            ev.dataTransfer.setData("text", ev.target.id);
+            
+            setTimeout(() => {
+                taskElement.classList.add('dragging');
+            }, 0);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const targetColumn = ev.currentTarget.closest('.column').getAttribute('data-column');
+            
+            if (draggedTask && draggedColumn !== targetColumn) {
+                // Находим задачу
+                const taskIndex = tasks[draggedColumn].findIndex(task => task.id == draggedTask);
+                if (taskIndex !== -1) {
+                    // Перемещаем задачу
+                    const [task] = tasks[draggedColumn].splice(taskIndex, 1);
+                    tasks[targetColumn].push(task);
+                    
+                    // Обновляем UI
+                    updateBoard();
+                }
+            }
+            
+            ev.currentTarget.classList.remove('drag-over');
+            resetDrag();
+        }
+
+        function resetDrag() {
+            const draggingElement = document.querySelector('.dragging');
+            if (draggingElement) {
+                draggingElement.classList.remove('dragging');
+            }
+            draggedTask = null;
+            draggedColumn = null;
+        }
+
+        // Добавление новой задачи
+        function addTask() {
+            const input = document.getElementById('taskInput');
+            const title = input.value.trim();
+            
+            if (!title) {
+                alert('Введите текст задачи');
+                return;
+            }
+            
+            const newId = Date.now();
+            tasks.queue.push({
+                id: newId,
+                title: title
+            });
+            
+            input.value = '';
+            updateBoard();
+        }
+
+        // Удаление задачи
+        function deleteTask(btn) {
+            const taskElement = btn.closest('.task');
+            const taskId = taskElement.getAttribute('data-task');
+            const column = taskElement.closest('.column').getAttribute('data-column');
+            
+            tasks[column] = tasks[column].filter(task => task.id != taskId);
+            updateBoard();
+        }
+
+        // Обновление доски
+        function updateBoard() {
+            const columns = ['queue', 'progress', 'review'];
+            
+            columns.forEach(columnId => {
+                const columnElement = document.querySelector(`[data-column="${columnId}"] .tasks`);
+                const tasksList = tasks[columnId];
+                
+                columnElement.innerHTML = '';
+                
+                if (tasksList.length === 0) {
+                    columnElement.innerHTML = '<div class="empty-column">Нет задач</div>';
+                } else {
+                    tasksList.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'task';
+                        taskElement.setAttribute('draggable', 'true');
+                        taskElement.setAttribute('data-task', task.id);
+                        taskElement.setAttribute('ondragstart', 'drag(event)');
+                        
+                        taskElement.innerHTML = `
+                            <div class="task-title">${task.title}</div>
+                            <div class="task-controls">
+                                <button onclick="deleteTask(this)" class="task-btn delete-btn">Удалить</button>
+                            </div>
+                        `;
+                        
+                        columnElement.appendChild(taskElement);
+                    });
+                }
+            });
+        }
+
+        // Убираем класс drag-over когда уходим с элемента
+        document.addEventListener('dragleave', function(e) {
+            if (!e.currentTarget.contains(e.relatedTarget)) {
+                e.currentTarget.classList.remove('drag-over');
+            }
+        });
+
+        document.addEventListener('dragend', resetDrag);
+
+        // Enter для добавления задачи
+        document.getElementById('taskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addTask();
+            }
+        });
+    </script>
+</body>
+</html>
